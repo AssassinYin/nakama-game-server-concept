@@ -8,24 +8,27 @@ This directory contains a **standalone example Nakama server project** with cust
 - **PostgreSQL** for persistent game data.
 - **Docker Compose** for easy local development.
 - **Modular RPC system**: Add new server-side features by writing TypeScript functions.
+- **AWS Deployment**: Load balancer configuration for production deployment.
 
 ---
 
 ## 📦 Project Structure
 
 ```
-temp-nakama-template/
-├── src/                  # TypeScript server logic
-│   ├── main.ts           # Registers all RPCs
-│   ├── character.ts      # Character creation, retrieval, item swap
-│   ├── player.ts         # Player account creation and lookup
-│   ├── add_item.ts       # Add weapons (bindings) and accessories
-├── Dockerfile            # Nakama server image with custom modules
-├── docker-compose.yml    # Runs Nakama + Postgres
-├── package.json          # TypeScript dependencies and build scripts
-├── tsconfig.json         # TypeScript configuration
-├── local.yml             # Nakama server config (optional)
-└── ...
+moblie-game-server-concept/
+├── temp-nakama-template/     # Nakama server with TypeScript modules
+│   ├── src/                  # TypeScript server logic
+│   ├── Dockerfile            # Nakama server image
+│   ├── docker-compose.yml    # Local development setup
+│   └── ...
+├── aws/                      # AWS deployment configuration
+│   ├── console-deployment-steps.md  # Step-by-step GUI deployment
+│   ├── main.tf               # Terraform configuration
+│   ├── alb.tf                # Application Load Balancer
+│   ├── nlb.tf                # Network Load Balancer
+│   └── ...
+├── database/                 # Database schema and queries
+└── README.md                 # This file
 ```
 
 ---
@@ -62,6 +65,58 @@ docker-compose up --build
 - **Nakama API:** http://localhost:7350
 - **Nakama Console:** http://localhost:7351 (default login: admin/password)
 - **Postgres:** localhost:5432
+
+---
+
+## ☁️ AWS Deployment
+
+### For Students (Console GUI)
+
+If you're a student and can't create IAM users, use the AWS Console:
+
+1. **Follow the step-by-step guide**: `aws/console-deployment-steps.md`
+2. **Create VPC, Load Balancers, and Target Groups** through the AWS Console
+3. **Connect your Nakama server** to the load balancers
+4. **Test your endpoints** and monitor costs
+
+**Benefits for Students:**
+- ✅ No IAM user restrictions
+- ✅ Learn AWS services hands-on
+- ✅ Free tier friendly
+- ✅ Visual understanding of infrastructure
+
+### For Developers (Terraform)
+
+If you have AWS credentials and want automated deployment:
+
+1. **Navigate to AWS directory**: `cd aws`
+2. **Install dependencies**: `pip install -r requirements.txt`
+3. **Run setup script**: `python setup_aws.py`
+4. **Deploy infrastructure**: `terraform init && terraform apply`
+
+### Load Balancer Architecture
+
+```
+Internet
+    ↓
+┌─────────────────┐    ┌─────────────────┐
+│   ALB (HTTP)    │    │   NLB (TCP)     │
+│   Port 80/443   │    │   Port 7349     │
+└─────────────────┘    └─────────────────┘
+    ↓                        ↓
+┌─────────────────┐    ┌─────────────────┐
+│ Target Groups   │    │ Target Group    │
+│ - API (7350)    │    │ - Realtime      │
+│ - Console (7351)│    │   (7349)        │
+└─────────────────┘    └─────────────────┘
+    ↓                        ↓
+┌─────────────────────────────────────────┐
+│           ECS Tasks (Nakama)            │
+│  - HTTP API (7350)                      │
+│  - Console (7351)                       │
+│  - Realtime Protocol (7349)             │
+└─────────────────────────────────────────┘
+```
 
 ---
 
@@ -188,6 +243,22 @@ accounts
 
 ---
 
+## 💰 Cost Management
+
+### Free Tier Considerations
+- **ALB**: 750 hours/month
+- **NLB**: 750 hours/month
+- **VPC**: Free
+- **Security Groups**: Free
+
+### Cost-Saving Tips
+- Delete resources when not testing
+- Use single AZ for development
+- Set up billing alerts
+- Monitor usage in AWS Cost Explorer
+
+---
+
 ## 📝 License
 
 This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for details.
@@ -198,8 +269,5 @@ This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE
 
 - [Nakama Documentation](https://heroiclabs.com/docs/)
 - [Nakama Community Forum](https://forum.heroiclabs.com/)
-- [GitHub Issues](https://github.com/heroiclabs/nakama/issues)
-
----
-
-**Happy hacking! Build your own multiplayer game logic with Nakama and TypeScript.** 
+- [AWS Load Balancer Documentation](https://docs.aws.amazon.com/elasticloadbalancing/)
+- [AWS Free Tier](https://aws.amazon.com/free/) 
