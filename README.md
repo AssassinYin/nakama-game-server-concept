@@ -8,7 +8,6 @@ This directory contains a **standalone example Nakama server project** with cust
 - **PostgreSQL** for persistent game data.
 - **Docker Compose** for easy local development.
 - **Modular RPC system**: Add new server-side features by writing TypeScript functions.
-- **AWS Deployment**: Load balancer configuration for production deployment.
 
 ---
 
@@ -20,12 +19,6 @@ moblie-game-server-concept/
 │   ├── src/                  # TypeScript server logic
 │   ├── Dockerfile            # Nakama server image
 │   ├── docker-compose.yml    # Local development setup
-│   └── ...
-├── aws/                      # AWS deployment configuration
-│   ├── console-deployment-steps.md  # Step-by-step GUI deployment
-│   ├── main.tf               # Terraform configuration
-│   ├── alb.tf                # Application Load Balancer
-│   ├── nlb.tf                # Network Load Balancer
 │   └── ...
 ├── database/                 # Database schema and queries
 └── README.md                 # This file
@@ -65,58 +58,6 @@ docker-compose up --build
 - **Nakama API:** http://localhost:7350
 - **Nakama Console:** http://localhost:7351 (default login: admin/password)
 - **Postgres:** localhost:5432
-
----
-
-## ☁️ AWS Deployment
-
-### For Students (Console GUI)
-
-If you're a student and can't create IAM users, use the AWS Console:
-
-1. **Follow the step-by-step guide**: `aws/console-deployment-steps.md`
-2. **Create VPC, Load Balancers, and Target Groups** through the AWS Console
-3. **Connect your Nakama server** to the load balancers
-4. **Test your endpoints** and monitor costs
-
-**Benefits for Students:**
-- ✅ No IAM user restrictions
-- ✅ Learn AWS services hands-on
-- ✅ Free tier friendly
-- ✅ Visual understanding of infrastructure
-
-### For Developers (Terraform)
-
-If you have AWS credentials and want automated deployment:
-
-1. **Navigate to AWS directory**: `cd aws`
-2. **Install dependencies**: `pip install -r requirements.txt`
-3. **Run setup script**: `python setup_aws.py`
-4. **Deploy infrastructure**: `terraform init && terraform apply`
-
-### Load Balancer Architecture
-
-```
-Internet
-    ↓
-┌─────────────────┐    ┌─────────────────┐
-│   ALB (HTTP)    │    │   NLB (TCP)     │
-│   Port 80/443   │    │   Port 7349     │
-└─────────────────┘    └─────────────────┘
-    ↓                        ↓
-┌─────────────────┐    ┌─────────────────┐
-│ Target Groups   │    │ Target Group    │
-│ - API (7350)    │    │ - Realtime      │
-│ - Console (7351)│    │   (7349)        │
-└─────────────────┘    └─────────────────┘
-    ↓                        ↓
-┌─────────────────────────────────────────┐
-│           ECS Tasks (Nakama)            │
-│  - HTTP API (7350)                      │
-│  - Console (7351)                       │
-│  - Realtime Protocol (7349)             │
-└─────────────────────────────────────────┘
-```
 
 ---
 
